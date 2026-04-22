@@ -57,6 +57,66 @@ php artisan serve
 
 Then open: http://127.0.0.1:8000
 
+## Deploy On Render
+This repository is prepared for Render with:
+- [render.yaml](render.yaml)
+- [scripts/render-deploy.sh](scripts/render-deploy.sh)
+
+The deploy script does this automatically on Render:
+1. Installs production PHP dependencies.
+2. Installs Node packages and builds assets.
+3. Runs Laravel optimization/cache commands.
+4. Runs database migration with `--force`.
+5. Runs `php artisan storage:link` (safe if already linked).
+
+### Required Render Environment Variables
+Set these in Render Dashboard for your web service:
+- `APP_NAME=Mini-LMS`
+- `APP_ENV=production`
+- `APP_DEBUG=false`
+- `APP_URL=https://<your-render-service>.onrender.com`
+- `ASSET_URL=https://<your-render-service>.onrender.com`
+- `APP_KEY=<generated-laravel-app-key>`
+- `LOG_CHANNEL=stack`
+- `LOG_LEVEL=error`
+- `DB_CONNECTION=mysql`
+- `DB_HOST=<render-database-host>`
+- `DB_PORT=3306`
+- `DB_DATABASE=<render-database-name>`
+- `DB_USERNAME=<render-database-user>`
+- `DB_PASSWORD=<render-database-password>`
+- `SESSION_DRIVER=database`
+- `CACHE_STORE=database`
+- `QUEUE_CONNECTION=database`
+- `FILESYSTEM_DISK=public`
+
+Generate `APP_KEY` locally (once) and paste into Render:
+
+```bash
+php artisan key:generate --show
+```
+
+### Render Deployment Steps
+1. Push code to GitHub.
+2. In Render: `New +` -> `Blueprint`.
+3. Select this repository (Render will detect [render.yaml](render.yaml)).
+4. Review service settings, then create the service.
+5. In service `Environment`, fill all `sync: false` values (especially `APP_URL`, `APP_KEY`, DB credentials).
+6. Trigger deploy.
+7. After deploy, test:
+  - Home page and login.
+  - Dashboard pages.
+  - API login at `/api/v1/login`.
+
+### Notes For Storage Linking
+- Public file URLs use `/storage/...`.
+- The symlink is created during deploy by [scripts/render-deploy.sh](scripts/render-deploy.sh).
+- If you redeploy manually and need to re-link, run:
+
+```bash
+php artisan storage:link
+```
+
 ## Seeded Login Credentials
 - Admin:
   - Email: admin@mini-lms.test

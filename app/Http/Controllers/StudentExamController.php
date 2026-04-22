@@ -419,7 +419,7 @@ class StudentExamController extends Controller
                 $query->whereNotNull('question_option_id')
                     ->orWhere(function ($textQuery) {
                         $textQuery->whereNotNull('answer_text')
-                            ->whereRaw('TRIM(answer_text) <> ""');
+                                ->whereRaw('TRIM(answer_text) <> \'\'');
                     });
             })
             ->distinct('question_id')

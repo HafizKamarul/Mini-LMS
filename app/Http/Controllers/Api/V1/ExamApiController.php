@@ -376,7 +376,7 @@ class ExamApiController extends Controller
                 $query->whereNotNull('question_option_id')
                     ->orWhere(function (Builder $textQuery): void {
                         $textQuery->whereNotNull('answer_text')
-                            ->whereRaw('TRIM(answer_text) <> ""');
+                                ->whereRaw('TRIM(answer_text) <> \'\'');
                     });
             })
             ->exists();

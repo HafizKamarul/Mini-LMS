@@ -47,6 +47,7 @@ Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
             Route::put('/{question}',        [QuestionController::class, 'update'])->name('update');
             Route::delete('/{question}',     [QuestionController::class, 'destroy'])->name('destroy');
             Route::get('/export/excel',   [QuestionController::class, 'exportExcel'])->name('export.excel');
+            Route::get('/export/csv', [QuestionController::class, 'exportCsv'])->name('export.csv');
             Route::get('/export/pdf',     [QuestionController::class, 'exportPdf'])->name('export.pdf');
             Route::get('/upload',         [QuestionController::class, 'uploadForm'])->name('upload.form');
             Route::post('/upload',        [QuestionController::class, 'upload'])->name('upload');

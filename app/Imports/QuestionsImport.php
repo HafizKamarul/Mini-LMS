@@ -5,6 +5,7 @@ namespace App\Imports;
 use App\Models\Exam;
 use App\Models\Question;
 use App\Models\QuestionOption;
+use App\Services\QuestionBankService;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
@@ -81,6 +82,9 @@ class QuestionsImport implements ToCollection, WithHeadingRow
                     ]);
                 }
 
+                $question->load('options');
+                app(QuestionBankService::class)->syncFromQuestion($question);
+
                 $this->imported++;
                 continue;
             }
@@ -98,7 +102,7 @@ class QuestionsImport implements ToCollection, WithHeadingRow
                 continue;
             }
 
-            Question::query()->create([
+            $question = Question::query()->create([
                 'exam_id' => $this->exam->id,
                 'question_text' => $questionText,
                 'type' => 'short_answer',
@@ -106,6 +110,8 @@ class QuestionsImport implements ToCollection, WithHeadingRow
                 'order' => $nextOrder,
                 'keywords' => $keywords,
             ]);
+
+            app(QuestionBankService::class)->syncFromQuestion($question);
 
             $this->imported++;
         }

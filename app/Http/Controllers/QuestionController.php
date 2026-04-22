@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Exports\ExamQuestionsExport;
 use App\Imports\QuestionsImport;
 use App\Models\Exam;
+use App\Models\QuestionBankQuestion;
 use App\Models\Question;
 use App\Models\QuestionOption;
+use App\Services\QuestionBankService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -17,6 +19,10 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class QuestionController extends Controller
 {
+    public function __construct(private readonly QuestionBankService $questionBankService)
+    {
+    }
+
     public function index(Exam $exam): View
     {
         $questions = $exam->questions()
@@ -25,7 +31,13 @@ class QuestionController extends Controller
             ->orderBy('id')
             ->get();
 
-        return view('admin.questions.index', compact('exam', 'questions'));
+        $bankQuestions = QuestionBankQuestion::query()
+            ->with('options')
+            ->latest()
+            ->limit(25)
+            ->get();
+
+        return view('admin.questions.index', compact('exam', 'questions', 'bankQuestions'));
     }
 
     public function create(Exam $exam): View
@@ -105,6 +117,9 @@ class QuestionController extends Controller
                 ]);
             }
         }
+
+        $question->refresh()->load('options');
+        $this->questionBankService->syncFromQuestion($question);
 
         return redirect()
             ->route('admin.exams.questions.index', $exam)
@@ -202,7 +217,13 @@ class QuestionController extends Controller
     public function upload(Request $request, Exam $exam): RedirectResponse
     {
         $validated = $request->validate([
-            'questions_file' => ['required', 'file', 'mimes:csv,xls,xlsx'],
+            'questions_file' => [
+                'required',
+                'file',
+                'mimes:csv,xls,xlsx',
+                'mimetypes:text/plain,text/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'max:5120',
+            ],
         ]);
 
         $import = new QuestionsImport($exam);
@@ -285,8 +306,20 @@ class QuestionController extends Controller
             }
         }
 
+        $question->load('options');
+        $this->questionBankService->syncFromQuestion($question);
+
         return redirect()
             ->route('admin.exams.questions.index', $exam)
             ->with('success', 'Question added successfully.');
+    }
+
+    public function attachFromBank(Exam $exam, QuestionBankQuestion $bankQuestion): RedirectResponse
+    {
+        $this->questionBankService->cloneToExam($exam, $bankQuestion);
+
+        return redirect()
+            ->route('admin.exams.questions.index', $exam)
+            ->with('success', 'Question added from question bank.');
     }
 }

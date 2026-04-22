@@ -1,58 +1,231 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Mini-LMS
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Mini-LMS is a Laravel 12 based learning management system for timed online exams with role-based access:
+- Admin: manage exams, question bank, question import/export, and result oversight.
+- Student: take exams, submit answers, and view published detailed results.
 
-## About Laravel
+## Tech Stack
+- PHP 8.2
+- Laravel 12
+- MySQL (XAMPP compatible)
+- Laravel Sanctum (token authentication for API)
+- Tailwind CSS + Vite
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
-
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
-
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
-
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+## Quick Setup
+1. Clone and install dependencies:
 
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+composer install
+npm install
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+2. Configure environment:
 
-## Contributing
+```bash
+copy .env.example .env
+php artisan key:generate
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+3. Configure database in `.env` (example for XAMPP):
 
-## Code of Conduct
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=mini_lms
+DB_USERNAME=root
+DB_PASSWORD=
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+4. Run migration and seed default users:
 
-## Security Vulnerabilities
+```bash
+php artisan migrate --seed
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+5. Build frontend assets:
 
-## License
+```bash
+npm run build
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+6. Start local server:
+
+```bash
+php artisan serve
+```
+
+Then open: http://127.0.0.1:8000
+
+## Seeded Login Credentials
+- Admin:
+  - Email: admin@mini-lms.test
+  - Password: password
+- Student:
+  - Email: student@mini-lms.test
+  - Password: password
+
+Defined in: `database/seeders/DatabaseSeeder.php`.
+
+## How To Test (Admin)
+1. Login as Admin.
+2. Create an exam from Admin > Exams.
+3. Add questions:
+- Add manually (MCQ or Subjective), or
+- Bulk upload CSV/XLS/XLSX, or
+- Reuse from Question Bank.
+4. Publish the exam and set future `starts_at` to verify it appears in Upcoming Exams on dashboards.
+5. Set start time to now/past to verify it moves to Ongoing/Available.
+6. Review results from Admin > Results after student submits.
+
+## How To Test (Student)
+1. Login as Student.
+2. Open Student Dashboard:
+- Available Exams: published and active now.
+- Upcoming Exams: published but not yet started.
+3. Start an available exam and answer questions.
+4. Submit exam:
+- Empty submission is blocked.
+- Double submission is blocked.
+5. View result details when published.
+
+## Basic API Docs (Sanctum)
+Base URL:
+
+```text
+http://127.0.0.1:8000/api/v1
+```
+
+### 1) Login (get token)
+`POST /login`
+
+Request:
+
+```json
+{
+  "email": "student@mini-lms.test",
+  "password": "password",
+  "device_name": "postman"
+}
+```
+
+Response includes `access_token`.
+
+### 2) Logout (revoke current token)
+`POST /logout`
+
+Header:
+
+```text
+Authorization: Bearer <access_token>
+Accept: application/json
+```
+
+### 3) List exams
+`GET /exams`
+
+Header:
+
+```text
+Authorization: Bearer <access_token>
+Accept: application/json
+```
+
+### 4) Submit result
+`POST /results/{exam_id}`
+
+Header:
+
+```text
+Authorization: Bearer <access_token>
+Accept: application/json
+Content-Type: application/json
+```
+
+Request sample:
+
+```json
+{
+  "answers": [
+    {
+      "question_id": 1,
+      "question_option_id": 3,
+      "is_flagged": false
+    },
+    {
+      "question_id": 2,
+      "answer_text": "inheritance and polymorphism",
+      "is_flagged": true
+    }
+  ]
+}
+```
+
+Rules:
+- Empty submission is rejected.
+- Double submission returns conflict.
+
+### 5) Student transcript
+`GET /student/{id}/transcript`
+
+Header:
+
+```text
+Authorization: Bearer <access_token>
+Accept: application/json
+```
+
+Authorization:
+- Student can view own transcript.
+- Admin can view any student transcript.
+
+## Postman (Bonus)
+Create a collection named `Mini-LMS API` and add these requests:
+- `POST /api/v1/login`
+- `POST /api/v1/logout`
+- `GET /api/v1/exams`
+- `POST /api/v1/results/{exam_id}`
+- `GET /api/v1/student/{id}/transcript`
+
+Set a collection variable `baseUrl` = `http://127.0.0.1:8000`.
+Use test script on login to save token:
+
+```javascript
+pm.collectionVariables.set("token", pm.response.json().data.access_token);
+```
+
+Use header on protected routes:
+
+```text
+Authorization: Bearer {{token}}
+```
+
+## Testing Guide
+### Manual Regression Checklist
+- Auth:
+  - Admin and student can login.
+  - API login returns token.
+- Exam lifecycle:
+  - Future published exam appears in Upcoming (Admin + Student).
+  - Exam becomes Available/Ongoing after start time.
+- Question management:
+  - Manual create/update works.
+  - Import file type validation blocks invalid files.
+  - Question Bank stores and reuses questions.
+- Submission validation:
+  - Empty submit is blocked.
+  - Double submit is blocked.
+- Results:
+  - Student sees own published details.
+  - Transcript API authorization works.
+
+### Run Automated Tests
+```bash
+php artisan test
+```
+
+If needed, clear cached config/routes before retesting:
+
+```bash
+php artisan optimize:clear
+```

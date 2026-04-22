@@ -29,7 +29,7 @@
             </div>
 
             {{-- Summary Cards --}}
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex items-center gap-4">
                     <div class="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
                         <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
@@ -38,6 +38,18 @@
                     </div>
                     <div>
                         <p class="text-xs text-gray-500 font-medium">Available Exams</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ $availableExams->count() }}</p>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-cyan-50 flex items-center justify-center flex-shrink-0">
+                        <svg class="w-6 h-6 text-cyan-600" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10m-12 9h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v11a2 2 0 002 2z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-500 font-medium">Upcoming Exams</p>
                         <p class="text-2xl font-bold text-gray-900">{{ $upcomingExams->count() }}</p>
                     </div>
                 </div>
@@ -84,7 +96,7 @@
                     @endif
                 </div>
 
-                @if($upcomingExams->isEmpty())
+                @if($availableExams->isEmpty())
                     <div class="px-6 py-12 text-center">
                         <svg class="w-10 h-10 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
@@ -93,7 +105,7 @@
                     </div>
                 @else
                     <div class="divide-y divide-gray-100">
-                        @foreach($upcomingExams as $exam)
+                        @foreach($availableExams as $exam)
                             <div class="px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
                                 <div class="flex items-center gap-4 min-w-0">
                                     <div class="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center flex-shrink-0">
@@ -123,6 +135,42 @@
                                         </svg>
                                     </button>
                                 </form>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+            </div>
+
+            {{-- Upcoming Exams --}}
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                    <div>
+                        <h3 class="text-base font-semibold text-gray-800">Upcoming Exams</h3>
+                        <p class="text-xs text-gray-400 mt-0.5">Published exams that have not started yet</p>
+                    </div>
+                    @if($upcomingExams->isNotEmpty())
+                        <span class="inline-flex items-center gap-1.5 text-xs font-medium text-cyan-700 bg-cyan-50 px-2.5 py-1 rounded-full">
+                            Scheduled
+                        </span>
+                    @endif
+                </div>
+
+                @if($upcomingExams->isEmpty())
+                    <div class="px-6 py-10 text-center text-sm text-gray-400">
+                        No upcoming exams scheduled.
+                    </div>
+                @else
+                    <div class="divide-y divide-gray-100">
+                        @foreach($upcomingExams as $exam)
+                            <div class="px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
+                                <div class="min-w-0">
+                                    <p class="text-sm font-semibold text-gray-900 truncate">{{ $exam->title }}</p>
+                                    <p class="text-xs text-gray-500 mt-0.5">
+                                        Starts {{ $exam->starts_at?->format('d M Y, H:i') }}
+                                        &bull; {{ $exam->questions_count }} question{{ $exam->questions_count === 1 ? '' : 's' }}
+                                        &bull; {{ $exam->duration_minutes }} min
+                                    </p>
+                                </div>
                             </div>
                         @endforeach
                     </div>

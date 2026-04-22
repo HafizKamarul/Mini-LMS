@@ -51,6 +51,7 @@ Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
             Route::get('/export/pdf',     [QuestionController::class, 'exportPdf'])->name('export.pdf');
             Route::get('/upload',         [QuestionController::class, 'uploadForm'])->name('upload.form');
             Route::post('/upload',        [QuestionController::class, 'upload'])->name('upload');
+            Route::post('/bank/{bankQuestion}/attach', [QuestionController::class, 'attachFromBank'])->name('bank.attach');
         });
 });
 

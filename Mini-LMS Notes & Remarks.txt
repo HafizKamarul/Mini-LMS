@@ -2,5 +2,13 @@ Mini-LMS
 
 1. Issue/Improvement
 
-- Added exam 'questions' cannot be edited or deleted by admin
-- Admin and student can only view overall exam score result, but not detailed result(which question answered correctly or incorrectly)
+rewrite the whole README.md file, tailor it to the project. Make sure these points are included:
+
+- 1-page README with setup + how to test as Admin & Student
+- Hardcoded seed accounts in README is fine.
+- Include basic API docs in README. Postman collection is a bonus.
+
+Login credentials
+Setup steps
+API docs
+Testing guide

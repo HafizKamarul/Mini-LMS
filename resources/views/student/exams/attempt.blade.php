@@ -75,6 +75,16 @@
             return questions[currentIndex];
         }
 
+        function hasAnyAnsweredQuestion() {
+            return questions.some((question) => {
+                if (question.type === 'short_answer') {
+                    return !!(question.answer.answer_text && question.answer.answer_text.trim() !== '');
+                }
+
+                return !!question.answer.question_option_id;
+            });
+        }
+
         function isAnswered(question) {
             if (question.type === 'short_answer') {
                 return !!(question.answer.answer_text && question.answer.answer_text.trim() !== '');
@@ -222,6 +232,13 @@
         }
 
         submitForm.addEventListener('submit', function (event) {
+            if (!hasAnyAnsweredQuestion()) {
+                event.preventDefault();
+                saveStatus.textContent = 'Cannot submit an empty exam. Please answer at least one question.';
+                saveStatus.className = 'mt-3 text-xs text-red-600';
+                return;
+            }
+
             if (isSubmitting) {
                 event.preventDefault();
                 return;

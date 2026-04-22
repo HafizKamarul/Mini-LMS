@@ -111,6 +111,56 @@
                     <div class="mt-6">
                         <a href="{{ route('admin.exams.index') }}" class="text-sm text-gray-600 hover:text-gray-900">← Back to Exams</a>
                     </div>
+
+                    <hr class="my-8 border-gray-200">
+
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900">Question Bank (Reusable)</h3>
+                        <p class="mt-1 text-sm text-gray-600">Every saved/imported question is stored here and can be reused in this exam.</p>
+
+                        @if ($bankQuestions->isEmpty())
+                            <p class="mt-4 text-sm text-gray-600">No question bank entries yet.</p>
+                        @else
+                            <div class="mt-4 space-y-3">
+                                @foreach ($bankQuestions as $bankQuestion)
+                                    <div class="rounded-lg border border-gray-200 p-4">
+                                        <div class="flex items-start justify-between gap-4">
+                                            <div>
+                                                <p class="font-medium text-gray-900">{{ $bankQuestion->question_text }}</p>
+                                                <p class="mt-1 text-xs text-gray-600">
+                                                    {{ $bankQuestion->type === 'short_answer' ? 'Subjective' : 'MCQ' }} | {{ $bankQuestion->marks }} marks
+                                                </p>
+                                            </div>
+                                            <form method="POST" action="{{ route('admin.exams.questions.bank.attach', [$exam, $bankQuestion]) }}">
+                                                @csrf
+                                                <button type="submit" class="inline-flex items-center px-3 py-1.5 rounded-md bg-indigo-600 text-xs font-semibold text-white hover:bg-indigo-500">
+                                                    Add To This Exam
+                                                </button>
+                                            </form>
+                                        </div>
+
+                                        @if ($bankQuestion->type === 'short_answer')
+                                            <p class="mt-2 text-sm text-gray-700">
+                                                <span class="font-medium">Keywords:</span>
+                                                {{ implode(', ', $bankQuestion->keywords ?? []) }}
+                                            </p>
+                                        @else
+                                            <ul class="mt-2 list-disc pl-6 text-sm text-gray-700">
+                                                @foreach ($bankQuestion->options as $option)
+                                                    <li>
+                                                        {{ $option->option_text }}
+                                                        @if ($option->is_correct)
+                                                            <span class="ml-2 rounded bg-green-100 px-2 py-0.5 text-xs text-green-800">Correct</span>
+                                                        @endif
+                                                    </li>
+                                                @endforeach
+                                            </ul>
+                                        @endif
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endif
+                    </div>
                 </div>
             </div>
         </div>

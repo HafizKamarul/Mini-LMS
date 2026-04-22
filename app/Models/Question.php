@@ -13,6 +13,7 @@ class Question extends Model
 
     protected $fillable = [
         'exam_id',
+        'question_bank_question_id',
         'question_text',
         'type',
         'marks',
@@ -37,6 +38,11 @@ class Question extends Model
     public function options(): HasMany
     {
         return $this->hasMany(QuestionOption::class);
+    }
+
+    public function bankQuestion(): BelongsTo
+    {
+        return $this->belongsTo(QuestionBankQuestion::class, 'question_bank_question_id');
     }
 
     public function answers(): HasMany

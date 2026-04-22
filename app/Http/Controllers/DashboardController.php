@@ -30,6 +30,15 @@ class DashboardController extends Controller
             ->withCount('submissions')
             ->get();
 
+        $upcomingExams = Exam::query()
+            ->where('is_published', true)
+            ->whereNotNull('starts_at')
+            ->where('starts_at', '>', $now)
+            ->withCount('questions')
+            ->orderBy('starts_at')
+            ->take(10)
+            ->get();
+
         $latestSubmissions = Submission::query()
             ->with(['student:id,name,email', 'exam:id,title'])
             ->latest('submitted_at')
@@ -41,6 +50,7 @@ class DashboardController extends Controller
             'totalExams',
             'totalStudents',
             'ongoingExams',
+            'upcomingExams',
             'latestSubmissions'
         ));
     }
@@ -50,7 +60,7 @@ class DashboardController extends Controller
         $now     = now();
         $student = $request->user();
 
-        $upcomingExams = Exam::query()
+        $availableExams = Exam::query()
             ->where('is_published', true)
             ->where(function ($query) use ($now) {
                 $query->whereNull('starts_at')->orWhere('starts_at', '<=', $now);
@@ -61,6 +71,18 @@ class DashboardController extends Controller
             ->whereDoesntHave('submissions', function ($query) use ($student) {
                 $query->where('student_id', $student->id)
                       ->where('status', 'submitted');
+            })
+            ->withCount('questions')
+            ->orderBy('starts_at')
+            ->get();
+
+        $upcomingExams = Exam::query()
+            ->where('is_published', true)
+            ->whereNotNull('starts_at')
+            ->where('starts_at', '>', $now)
+            ->whereDoesntHave('submissions', function ($query) use ($student) {
+                $query->where('student_id', $student->id)
+                    ->where('status', 'submitted');
             })
             ->withCount('questions')
             ->orderBy('starts_at')
@@ -84,6 +106,7 @@ class DashboardController extends Controller
         $averageScore = $averageScore ? round($averageScore, 1) : null;
 
         return view('student.dashboard', compact(
+            'availableExams',
             'upcomingExams',
             'completedExams',
             'averageScore'

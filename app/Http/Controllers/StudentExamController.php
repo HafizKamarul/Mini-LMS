@@ -241,6 +241,18 @@ class StudentExamController extends Controller
                 ->with('warning', 'No active submission found for this exam.');
         }
 
+        if ($submission->status !== 'in_progress') {
+            return redirect()
+                ->route('student.exams.index')
+                ->with('warning', 'This exam has already been submitted. Double submission is not allowed.');
+        }
+
+        if (! $this->hasAnsweredAtLeastOneQuestion($submission)) {
+            return redirect()
+                ->route('student.exams.attempt', $exam)
+                ->with('warning', 'Cannot submit an empty exam. Please answer at least one question.');
+        }
+
         if (! $this->finalizeSubmission($submission)) {
             return redirect()
                 ->route('student.exams.index')
@@ -392,5 +404,18 @@ class StudentExamController extends Controller
                 'passed'      => $percentage >= 50,
             ]
         );
+    }
+
+    private function hasAnsweredAtLeastOneQuestion(Submission $submission): bool
+    {
+        return $submission->answers()
+            ->where(function ($query) {
+                $query->whereNotNull('question_option_id')
+                    ->orWhere(function ($textQuery) {
+                        $textQuery->whereNotNull('answer_text')
+                            ->whereRaw('TRIM(answer_text) <> ""');
+                    });
+            })
+            ->exists();
     }
 }

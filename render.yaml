@@ -22,17 +22,19 @@ services:
       - key: LOG_LEVEL
         value: error
       - key: DB_CONNECTION
-        value: mysql
+        value: pgsql
       - key: DB_HOST
         sync: false
       - key: DB_PORT
-        value: "3306"
+        value: "5432"
       - key: DB_DATABASE
         sync: false
       - key: DB_USERNAME
         sync: false
       - key: DB_PASSWORD
         sync: false
+      - key: DB_SSLMODE
+        value: require
       - key: SESSION_DRIVER
         value: database
       - key: CACHE_STORE

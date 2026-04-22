@@ -1,80 +1,40 @@
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Results') }}
-        </h2>
-    </x-slot>
+    <x-slot name="header"><h1 class="h4 mb-0">Results</h1></x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900">
-                    @if (session('success'))
-                        <div class="mb-4 rounded-md bg-green-100 p-3 text-green-800">
-                            {{ session('success') }}
-                        </div>
-                    @endif
-
-                    @if ($results->isEmpty())
-                        <p class="text-gray-600">No results found.</p>
-                    @else
-                        <div class="overflow-x-auto">
-                            <table class="min-w-full divide-y divide-gray-200">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Exam</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Student</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Score</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Percentage</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Time Taken</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Published</th>
-                                        <th class="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-gray-200 bg-white">
-                                    @foreach ($results as $result)
-                                        @php
-                                            $minutes = intdiv((int) $result->time_taken, 60);
-                                            $seconds = (int) $result->time_taken % 60;
-                                        @endphp
-                                        <tr>
-                                            <td class="px-4 py-3">{{ $result->exam->title }}</td>
-                                            <td class="px-4 py-3">
-                                                {{ $result->student->name }}<br>
-                                                <span class="text-xs text-gray-500">{{ $result->student->email }}</span>
-                                            </td>
-                                            <td class="px-4 py-3">{{ number_format((float) $result->score, 2) }} / {{ number_format((float) $result->total_marks, 2) }}</td>
-                                            <td class="px-4 py-3">{{ number_format((float) $result->percentage, 2) }}%</td>
-                                            <td class="px-4 py-3">{{ sprintf('%02d:%02d', $minutes, $seconds) }}</td>
-                                            <td class="px-4 py-3">{{ $result->published_at ? 'Yes' : 'No' }}</td>
-                                            <td class="px-4 py-3 text-right space-y-2">
-                                                <form action="{{ route('admin.results.override', $result) }}" method="POST" class="flex justify-end items-center gap-2">
-                                                    @csrf
-                                                    @method('PATCH')
-                                                    <input type="number" name="score" min="0" max="{{ $result->total_marks }}" step="0.01" value="{{ $result->score }}" class="w-24 rounded-md border-gray-300 text-sm" required>
-                                                    <button type="submit" class="text-indigo-600 hover:text-indigo-900 text-sm">Override</button>
-                                                </form>
-
-                                                <form action="{{ route('admin.results.publish.toggle', $result) }}" method="POST">
-                                                    @csrf
-                                                    @method('PATCH')
-                                                    <button type="submit" class="text-sm {{ $result->published_at ? 'text-amber-600 hover:text-amber-800' : 'text-emerald-600 hover:text-emerald-800' }}">
-                                                        {{ $result->published_at ? 'Unpublish' : 'Publish' }}
-                                                    </button>
-                                                </form>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <div class="mt-4">
-                            {{ $results->links() }}
-                        </div>
-                    @endif
-                </div>
-            </div>
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table table-striped mb-0">
+                <thead><tr><th>Exam</th><th>Student</th><th>Score</th><th>Percentage</th><th>Time Taken</th><th>Published</th><th class="text-end">Actions</th></tr></thead>
+                <tbody>
+                @forelse($results as $result)
+                    @php $minutes = intdiv((int) $result->time_taken, 60); $seconds = (int) $result->time_taken % 60; @endphp
+                    <tr>
+                        <td>{{ $result->exam->title }}</td>
+                        <td>{{ $result->student->name }}<div class="small text-muted">{{ $result->student->email }}</div></td>
+                        <td>{{ number_format((float) $result->score, 2) }} / {{ number_format((float) $result->total_marks, 2) }}</td>
+                        <td>{{ number_format((float) $result->percentage, 2) }}%</td>
+                        <td>{{ sprintf('%02d:%02d', $minutes, $seconds) }}</td>
+                        <td>{{ $result->published_at ? 'Yes' : 'No' }}</td>
+                        <td class="text-end">
+                            <form action="{{ route('admin.results.override', $result) }}" method="POST" class="d-inline-flex gap-2 mb-2">
+                                @csrf @method('PATCH')
+                                <input type="number" name="score" min="0" max="{{ $result->total_marks }}" step="0.01" value="{{ $result->score }}" class="form-control form-control-sm" style="width:110px" required>
+                                <button class="btn btn-sm btn-outline-primary" type="submit">Override</button>
+                            </form>
+                            <form action="{{ route('admin.results.publish.toggle', $result) }}" method="POST">
+                                @csrf @method('PATCH')
+                                <button class="btn btn-sm {{ $result->published_at ? 'btn-outline-warning' : 'btn-outline-success' }}" type="submit">{{ $result->published_at ? 'Unpublish' : 'Publish' }}</button>
+                            </form>
+                            <a href="{{ route('admin.results.show', $result) }}" class="btn btn-sm btn-outline-secondary mt-2">View</a>
+                        </td>
+                    </tr>
+                @empty
+                    <tr><td colspan="7" class="text-center text-muted">No results found.</td></tr>
+                @endforelse
+                </tbody>
+            </table>
         </div>
     </div>
+
+    <div class="mt-3">{{ $results->links() }}</div>
 </x-app-layout>

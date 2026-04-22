@@ -247,10 +247,10 @@ class StudentExamController extends Controller
                 ->with('warning', 'This exam has already been submitted. Double submission is not allowed.');
         }
 
-        if (! $this->hasAnsweredAtLeastOneQuestion($submission)) {
+        if (! $this->hasAnsweredAllQuestions($submission)) {
             return redirect()
                 ->route('student.exams.attempt', $exam)
-                ->with('warning', 'Cannot submit an empty exam. Please answer at least one question.');
+            ->with('warning', 'All questions are required. Please answer every question before submitting.');
         }
 
         if (! $this->finalizeSubmission($submission)) {
@@ -406,9 +406,15 @@ class StudentExamController extends Controller
         );
     }
 
-    private function hasAnsweredAtLeastOneQuestion(Submission $submission): bool
+    private function hasAnsweredAllQuestions(Submission $submission): bool
     {
-        return $submission->answers()
+        $totalQuestions = $submission->exam->questions()->count();
+
+        if ($totalQuestions === 0) {
+            return false;
+        }
+
+        $answeredQuestions = $submission->answers()
             ->where(function ($query) {
                 $query->whereNotNull('question_option_id')
                     ->orWhere(function ($textQuery) {
@@ -416,6 +422,9 @@ class StudentExamController extends Controller
                             ->whereRaw('TRIM(answer_text) <> ""');
                     });
             })
-            ->exists();
+            ->distinct('question_id')
+            ->count('question_id');
+
+        return $answeredQuestions >= $totalQuestions;
     }
 }

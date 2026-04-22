@@ -7,6 +7,28 @@
     <title>{{ config('app.name', 'Mini-LMS') }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+        :root {
+            --brand-1: #0d6efd;
+            --brand-2: #0a58ca;
+            --page-bg: #eef3f9;
+        }
+
+        body {
+            background:
+                radial-gradient(circle at 5% 5%, rgba(13, 110, 253, 0.10), transparent 35%),
+                radial-gradient(circle at 95% 0%, rgba(10, 88, 202, 0.10), transparent 28%),
+                var(--page-bg);
+        }
+
+        .navbar.bg-primary {
+            background: linear-gradient(120deg, var(--brand-1), var(--brand-2)) !important;
+        }
+
+        .card {
+            border-radius: .9rem;
+        }
+    </style>
 </head>
 <body class="bg-light">
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">

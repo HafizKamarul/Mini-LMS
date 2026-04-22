@@ -2,13 +2,8 @@ Mini-LMS
 
 1. Issue/Improvement
 
-rewrite the whole README.md file, tailor it to the project. Make sure these points are included:
-
-- 1-page README with setup + how to test as Admin & Student
-- Hardcoded seed accounts in README is fine.
-- Include basic API docs in README. Postman collection is a bonus.
-
-Login credentials
-Setup steps
-API docs
-Testing guide
+- Cannot save answer(nothing happened) and 'Previous' and 'Next' button are disabled when answering exams
+- Cannot go to other questions when answering exam, clicking question number does nothing
+- For bulk upload questions, format are not detailed enough like before.
+- "Cannot submit an empty exam, please answer at least one question", for this error, change it to make sure all questions are REQUIRED to be answered.
+- UI too ugly

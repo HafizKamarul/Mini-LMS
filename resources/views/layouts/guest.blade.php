@@ -6,6 +6,18 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ config('app.name', 'Mini-LMS') }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background:
+                radial-gradient(circle at 0% 0%, rgba(13, 110, 253, 0.15), transparent 35%),
+                radial-gradient(circle at 100% 100%, rgba(25, 135, 84, 0.12), transparent 40%),
+                #edf3fb;
+        }
+
+        .card {
+            border-radius: 1rem;
+        }
+    </style>
 </head>
 <body class="bg-light d-flex align-items-center" style="min-height:100vh;">
     <div class="container">

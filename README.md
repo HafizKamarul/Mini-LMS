@@ -58,16 +58,16 @@ php artisan serve
 Then open: http://127.0.0.1:8000
 
 ## Deploy On Render
-This repository is prepared for Render with:
+This repository is prepared for Render Blueprint (Docker) with:
 - [render.yaml](render.yaml)
-- [scripts/render-deploy.sh](scripts/render-deploy.sh)
+- [Dockerfile](Dockerfile)
+- [scripts/render-start.sh](scripts/render-start.sh)
 
-The deploy script does this automatically on Render:
-1. Installs production PHP dependencies.
-2. Installs Node packages and builds assets.
-3. Runs Laravel optimization/cache commands.
-4. Runs database migration with `--force`.
-5. Runs `php artisan storage:link` (safe if already linked).
+On service start, the app automatically:
+1. Runs Laravel optimize/cache commands.
+2. Runs `php artisan migrate --force`.
+3. Runs `php artisan storage:link` (safe if already linked).
+4. Starts Apache serving `public/`.
 
 ### Required Render Environment Variables
 Set these in Render Dashboard for your web service:
@@ -100,18 +100,18 @@ php artisan key:generate --show
 1. Push code to GitHub.
 2. In Render: `New +` -> `Blueprint`.
 3. Select this repository (Render will detect [render.yaml](render.yaml)).
-4. Review service settings, then create the service.
+4. Confirm service uses `env: docker` and [Dockerfile](Dockerfile).
 5. In service `Environment`, fill all `sync: false` values (especially `APP_URL`, `APP_KEY`, DB credentials).
 6. Trigger deploy.
 7. After deploy, test:
-  - Home page and login.
-  - Dashboard pages.
-  - API login at `/api/v1/login`.
+- Home page and login.
+- Dashboard pages.
+- API login at `/api/v1/login`.
 
 ### Notes For Storage Linking
 - Public file URLs use `/storage/...`.
-- The symlink is created during deploy by [scripts/render-deploy.sh](scripts/render-deploy.sh).
-- If you redeploy manually and need to re-link, run:
+- The symlink is created at startup by [scripts/render-start.sh](scripts/render-start.sh).
+- If you need to re-link manually in Render Shell, run:
 
 ```bash
 php artisan storage:link

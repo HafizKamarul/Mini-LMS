@@ -2,6 +2,24 @@
     <h2 class="h5">Profile Information</h2>
     <p class="text-muted small">Update your account profile information and email address.</p>
 
+    @if (session('success'))
+        <div class="alert alert-success py-2 small">{{ session('success') }}</div>
+    @endif
+
+    @if (session('error'))
+        <div class="alert alert-danger py-2 small">{{ session('error') }}</div>
+    @endif
+
+    @if ($errors->any())
+        <div class="alert alert-danger py-2 small">
+            <ul class="mb-0 ps-3">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
     <form id="send-verification" method="post" action="{{ route('verification.send') }}">@csrf</form>
 
     <form method="post" action="{{ route('profile.update') }}" class="mt-3">

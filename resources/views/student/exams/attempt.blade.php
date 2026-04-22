@@ -48,7 +48,7 @@
     <script>
         const questions = @json($questions);
         const deadlineTimestamp = new Date(@json($deadline->toIso8601String())).getTime();
-        const saveEndpointTemplate = @json(route('student.exams.questions.save', ['exam' => $exam->id, 'question' => '__QUESTION__'], false));
+        const saveEndpointBase = @json('/student/exams/' . $exam->id . '/questions');
         let currentIndex = 0;
         const questionNav = document.getElementById('question-nav');
         const questionMeta = document.getElementById('question-meta');
@@ -161,7 +161,7 @@
             }
 
             try {
-                const endpoint = saveEndpointTemplate.replace('__QUESTION__', String(question.id));
+                const endpoint = `${saveEndpointBase}/${question.id}/save`;
 
                 const response = await fetch(endpoint, {
                     method: 'POST',

@@ -32,6 +32,96 @@ class QuestionController extends Controller
         return view('admin.questions.create', compact('exam'));
     }
 
+    public function edit(Exam $exam, Question $question): View
+    {
+        abort_if($question->exam_id !== $exam->id, 404);
+
+        $question->load('options');
+
+        return view('admin.questions.edit', compact('exam', 'question'));
+    }
+
+    public function update(Request $request, Exam $exam, Question $question): RedirectResponse
+    {
+        abort_if($question->exam_id !== $exam->id, 404);
+
+        $type = $question->type === 'single_choice' ? 'mcq' : 'subjective';
+
+        $rules = [
+            'question_text' => ['required', 'string'],
+            'marks'         => ['required', 'numeric', 'min:0.25'],
+            'order'         => ['nullable', 'integer', 'min:0'],
+            'explanation'   => ['nullable', 'string'],
+        ];
+
+        if ($type === 'mcq') {
+            $rules['options']         = ['required', 'array', 'size:4'];
+            $rules['options.*']       = ['required', 'string', 'max:1000'];
+            $rules['correct_option']  = ['required', 'integer', 'between:0,3'];
+        }
+
+        if ($type === 'subjective') {
+            $rules['keywords'] = ['required', 'string'];
+        }
+
+        $validated = $request->validate($rules);
+
+        $keywords = null;
+
+        if ($type === 'subjective') {
+            $keywords = collect(explode(',', (string) $validated['keywords']))
+                ->map(fn (string $k) => trim($k))
+                ->filter()
+                ->unique()
+                ->values()
+                ->all();
+
+            if ($keywords === []) {
+                return back()
+                    ->withErrors(['keywords' => 'Please provide at least one keyword.'])
+                    ->withInput();
+            }
+        }
+
+        $question->update([
+            'question_text' => $validated['question_text'],
+            'marks'         => $validated['marks'],
+            'order'         => $validated['order'] ?? 0,
+            'explanation'   => $validated['explanation'] ?? null,
+            'keywords'      => $keywords,
+        ]);
+
+        if ($type === 'mcq') {
+            // Delete old options and recreate to keep it simple
+            $question->options()->delete();
+
+            foreach ($validated['options'] as $index => $optionText) {
+                QuestionOption::query()->create([
+                    'question_id' => $question->id,
+                    'option_text' => $optionText,
+                    'is_correct'  => (int) $validated['correct_option'] === $index,
+                    'order'       => $index + 1,
+                ]);
+            }
+        }
+
+        return redirect()
+            ->route('admin.exams.questions.index', $exam)
+            ->with('success', 'Question updated successfully.');
+    }
+
+    public function destroy(Exam $exam, Question $question): RedirectResponse
+    {
+        abort_if($question->exam_id !== $exam->id, 404);
+
+        $question->options()->delete();
+        $question->delete();
+
+        return redirect()
+            ->route('admin.exams.questions.index', $exam)
+            ->with('success', 'Question deleted successfully.');
+    }
+
     public function exportExcel(Exam $exam): BinaryFileResponse
     {
         $fileName = 'exam-'.$exam->id.'-questions.xlsx';
@@ -48,7 +138,7 @@ class QuestionController extends Controller
             ->get();
 
         $pdf = Pdf::loadView('admin.questions.export-pdf', [
-            'exam' => $exam,
+            'exam'      => $exam,
             'questions' => $questions,
         ])->setPaper('a4', 'landscape');
 
@@ -91,14 +181,14 @@ class QuestionController extends Controller
         $rules = [
             'question_type' => ['required', 'in:mcq,subjective'],
             'question_text' => ['required', 'string'],
-            'marks' => ['required', 'numeric', 'min:0.25'],
-            'order' => ['nullable', 'integer', 'min:0'],
-            'explanation' => ['nullable', 'string'],
+            'marks'         => ['required', 'numeric', 'min:0.25'],
+            'order'         => ['nullable', 'integer', 'min:0'],
+            'explanation'   => ['nullable', 'string'],
         ];
 
         if ($type === 'mcq') {
-            $rules['options'] = ['required', 'array', 'size:4'];
-            $rules['options.*'] = ['required', 'string', 'max:1000'];
+            $rules['options']        = ['required', 'array', 'size:4'];
+            $rules['options.*']      = ['required', 'string', 'max:1000'];
             $rules['correct_option'] = ['required', 'integer', 'between:0,3'];
         }
 
@@ -126,13 +216,13 @@ class QuestionController extends Controller
         }
 
         $question = Question::query()->create([
-            'exam_id' => $exam->id,
+            'exam_id'       => $exam->id,
             'question_text' => $validated['question_text'],
-            'type' => $type === 'mcq' ? 'single_choice' : 'short_answer',
-            'marks' => $validated['marks'],
-            'order' => $validated['order'] ?? 0,
-            'explanation' => $validated['explanation'] ?? null,
-            'keywords' => $keywords,
+            'type'          => $type === 'mcq' ? 'single_choice' : 'short_answer',
+            'marks'         => $validated['marks'],
+            'order'         => $validated['order'] ?? 0,
+            'explanation'   => $validated['explanation'] ?? null,
+            'keywords'      => $keywords,
         ]);
 
         if ($type === 'mcq') {
@@ -140,8 +230,8 @@ class QuestionController extends Controller
                 QuestionOption::query()->create([
                     'question_id' => $question->id,
                     'option_text' => $optionText,
-                    'is_correct' => (int) $validated['correct_option'] === $index,
-                    'order' => $index + 1,
+                    'is_correct'  => (int) $validated['correct_option'] === $index,
+                    'order'       => $index + 1,
                 ]);
             }
         }

@@ -47,7 +47,7 @@ class DashboardController extends Controller
 
     public function student(Request $request): View
     {
-        $now = now();
+        $now     = now();
         $student = $request->user();
 
         $upcomingExams = Exam::query()
@@ -69,7 +69,11 @@ class DashboardController extends Controller
         $completedExams = Submission::query()
             ->where('student_id', $student->id)
             ->where('status', 'submitted')
-            ->with(['exam:id,title,total_marks', 'result:submission_id,score,total_marks,percentage,passed,published_at'])
+            ->with([
+                'exam:id,title,total_marks',
+                // id must be included so route() can resolve the model
+                'result:id,submission_id,score,total_marks,percentage,passed,published_at',
+            ])
             ->latest('submitted_at')
             ->get();
 

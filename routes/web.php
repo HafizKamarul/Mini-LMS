@@ -30,6 +30,8 @@ Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
 
     Route::get('admin/results', [AdminResultController::class, 'index'])
         ->name('admin.results.index');
+    Route::get('admin/results/{result}', [AdminResultController::class, 'show'])
+        ->name('admin.results.show');
     Route::patch('admin/results/{result}/override', [AdminResultController::class, 'overrideMarks'])
         ->name('admin.results.override');
     Route::patch('admin/results/{result}/publish-toggle', [AdminResultController::class, 'togglePublish'])
@@ -38,13 +40,16 @@ Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
     Route::prefix('admin/exams/{exam}/questions')
         ->name('admin.exams.questions.')
         ->group(function () {
-            Route::get('/', [QuestionController::class, 'index'])->name('index');
-            Route::get('/create', [QuestionController::class, 'create'])->name('create');
-            Route::post('/', [QuestionController::class, 'store'])->name('store');
-            Route::get('/export/excel', [QuestionController::class, 'exportExcel'])->name('export.excel');
-            Route::get('/export/pdf', [QuestionController::class, 'exportPdf'])->name('export.pdf');
-            Route::get('/upload', [QuestionController::class, 'uploadForm'])->name('upload.form');
-            Route::post('/upload', [QuestionController::class, 'upload'])->name('upload');
+            Route::get('/',               [QuestionController::class, 'index'])->name('index');
+            Route::get('/create',         [QuestionController::class, 'create'])->name('create');
+            Route::post('/',              [QuestionController::class, 'store'])->name('store');
+            Route::get('/{question}/edit',   [QuestionController::class, 'edit'])->name('edit');
+            Route::put('/{question}',        [QuestionController::class, 'update'])->name('update');
+            Route::delete('/{question}',     [QuestionController::class, 'destroy'])->name('destroy');
+            Route::get('/export/excel',   [QuestionController::class, 'exportExcel'])->name('export.excel');
+            Route::get('/export/pdf',     [QuestionController::class, 'exportPdf'])->name('export.pdf');
+            Route::get('/upload',         [QuestionController::class, 'uploadForm'])->name('upload.form');
+            Route::post('/upload',        [QuestionController::class, 'upload'])->name('upload');
         });
 });
 
@@ -56,6 +61,7 @@ Route::middleware(['auth', 'verified', 'role:student'])->group(function () {
     Route::get('/student/exams/{exam}/attempt', [StudentExamController::class, 'attempt'])->name('student.exams.attempt');
     Route::post('/student/exams/{exam}/questions/{question}/save', [StudentExamController::class, 'saveAnswer'])->name('student.exams.questions.save');
     Route::post('/student/exams/{exam}/submit', [StudentExamController::class, 'submit'])->name('student.exams.submit');
+    Route::get('/student/results/{result}', [StudentExamController::class, 'resultDetail'])->name('student.results.show');
 });
 
 Route::middleware('auth')->group(function () {

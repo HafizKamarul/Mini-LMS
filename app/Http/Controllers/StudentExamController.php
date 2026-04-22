@@ -18,7 +18,7 @@ class StudentExamController extends Controller
 {
     public function index(Request $request): View
     {
-        $now = now();
+        $now     = now();
         $student = $request->user();
 
         $activeExams = Exam::query()
@@ -52,12 +52,12 @@ class StudentExamController extends Controller
 
         $submission = Submission::query()->firstOrCreate(
             [
-                'exam_id' => $exam->id,
+                'exam_id'    => $exam->id,
                 'student_id' => $request->user()->id,
             ],
             [
                 'started_at' => now(),
-                'status' => 'in_progress',
+                'status'     => 'in_progress',
             ]
         );
 
@@ -79,12 +79,12 @@ class StudentExamController extends Controller
     {
         $submission = Submission::query()->firstOrCreate(
             [
-                'exam_id' => $exam->id,
+                'exam_id'    => $exam->id,
                 'student_id' => $request->user()->id,
             ],
             [
                 'started_at' => now(),
-                'status' => 'in_progress',
+                'status'     => 'in_progress',
             ]
         );
 
@@ -123,28 +123,53 @@ class StudentExamController extends Controller
             $answer = $answersByQuestion->get($question->id);
 
             return [
-                'id' => $question->id,
+                'id'            => $question->id,
                 'question_text' => $question->question_text,
-                'type' => $question->type,
-                'marks' => $question->marks,
-                'options' => $question->options->map(fn ($option) => [
-                    'id' => $option->id,
+                'type'          => $question->type,
+                'marks'         => $question->marks,
+                'options'       => $question->options->map(fn ($option) => [
+                    'id'          => $option->id,
                     'option_text' => $option->option_text,
                 ])->values()->all(),
-                'answer' => [
+                'answer'        => [
                     'question_option_id' => $answer?->question_option_id,
-                    'answer_text' => $answer?->answer_text,
-                    'is_flagged' => (bool) ($answer?->is_flagged ?? false),
+                    'answer_text'        => $answer?->answer_text,
+                    'is_flagged'         => (bool) ($answer?->is_flagged ?? false),
                 ],
             ];
         })->values();
 
         return view('student.exams.attempt', [
-            'exam' => $exam,
+            'exam'       => $exam,
             'submission' => $submission,
-            'deadline' => $deadline,
-            'questions' => $questionPayload,
+            'deadline'   => $deadline,
+            'questions'  => $questionPayload,
         ]);
+    }
+
+    public function resultDetail(Request $request, Result $result): View|RedirectResponse
+    {
+        // Students can only see their own results, and only if published
+        if ($result->student_id !== $request->user()->id) {
+            abort(403);
+        }
+
+        if (! $result->published_at) {
+            return redirect()
+                ->route('student.dashboard')
+                ->with('warning', 'This result has not been published yet.');
+        }
+
+        $result->load([
+            'exam:id,title,total_marks',
+            'submission.answers.question.options',
+        ]);
+
+        $answers = $result->submission->answers
+            ->sortBy(fn ($a) => $a->question->order ?? $a->question->id)
+            ->values();
+
+        return view('student.results.show', compact('result', 'answers'));
     }
 
     public function saveAnswer(Request $request, Exam $exam, Question $question): JsonResponse
@@ -154,9 +179,9 @@ class StudentExamController extends Controller
         }
 
         $submission = Submission::query()->where([
-            'exam_id' => $exam->id,
+            'exam_id'    => $exam->id,
             'student_id' => $request->user()->id,
-            'status' => 'in_progress',
+            'status'     => 'in_progress',
         ])->first();
 
         if (! $submission) {
@@ -176,15 +201,15 @@ class StudentExamController extends Controller
                 Rule::exists('question_options', 'id')->where('question_id', $question->id),
             ],
             'answer_text' => ['nullable', 'string'],
-            'is_flagged' => ['nullable', 'boolean'],
+            'is_flagged'  => ['nullable', 'boolean'],
         ]);
 
         $isSubjective = $question->type === 'short_answer';
 
         $answerData = [
             'question_option_id' => $isSubjective ? null : ($validated['question_option_id'] ?? null),
-            'answer_text' => $isSubjective ? trim((string) ($validated['answer_text'] ?? '')) : null,
-            'is_flagged' => (bool) ($validated['is_flagged'] ?? false),
+            'answer_text'        => $isSubjective ? trim((string) ($validated['answer_text'] ?? '')) : null,
+            'is_flagged'         => (bool) ($validated['is_flagged'] ?? false),
         ];
 
         $answerData['answer_text'] = $answerData['answer_text'] === '' ? null : $answerData['answer_text'];
@@ -192,13 +217,13 @@ class StudentExamController extends Controller
         Answer::query()->updateOrCreate(
             [
                 'submission_id' => $submission->id,
-                'question_id' => $question->id,
+                'question_id'   => $question->id,
             ],
             $answerData
         );
 
         return response()->json([
-            'message' => 'Answer saved.',
+            'message'  => 'Answer saved.',
             'saved_at' => now()->toIso8601String(),
         ]);
     }
@@ -206,7 +231,7 @@ class StudentExamController extends Controller
     public function submit(Request $request, Exam $exam): RedirectResponse
     {
         $submission = Submission::query()->where([
-            'exam_id' => $exam->id,
+            'exam_id'    => $exam->id,
             'student_id' => $request->user()->id,
         ])->first();
 
@@ -265,9 +290,9 @@ class StudentExamController extends Controller
             ->where('id', $submission->id)
             ->where('status', 'in_progress')
             ->update([
-                'status' => 'submitted',
+                'status'       => 'submitted',
                 'submitted_at' => now(),
-                'updated_at' => now(),
+                'updated_at'   => now(),
             ]);
 
         if ($updated === 0) {
@@ -287,11 +312,11 @@ class StudentExamController extends Controller
             'answers',
         ]);
 
-        $questions = $submission->exam->questions;
+        $questions         = $submission->exam->questions;
         $answersByQuestion = $submission->answers->keyBy('question_id');
 
         $totalMarks = (float) $questions->sum(fn (Question $question) => (float) $question->marks);
-        $score = 0.0;
+        $score      = 0.0;
 
         foreach ($questions as $question) {
             /** @var Answer|null $answer */
@@ -302,7 +327,7 @@ class StudentExamController extends Controller
             }
 
             $awardedMarks = 0.0;
-            $isCorrect = false;
+            $isCorrect    = false;
 
             if ($question->type === 'short_answer') {
                 $keywords = collect($question->keywords ?? [])
@@ -322,7 +347,7 @@ class StudentExamController extends Controller
 
                     if ($matchRatio >= 0.5) {
                         $awardedMarks = (float) $question->marks;
-                        $isCorrect = true;
+                        $isCorrect    = true;
                     }
                 }
             } else {
@@ -330,12 +355,12 @@ class StudentExamController extends Controller
 
                 if ($correctOption && (int) $answer->question_option_id === (int) $correctOption->id) {
                     $awardedMarks = (float) $question->marks;
-                    $isCorrect = true;
+                    $isCorrect    = true;
                 }
             }
 
             $answer->update([
-                'is_correct' => $isCorrect,
+                'is_correct'    => $isCorrect,
                 'marks_awarded' => $awardedMarks,
             ]);
 
@@ -358,13 +383,13 @@ class StudentExamController extends Controller
         Result::query()->updateOrCreate(
             ['submission_id' => $submission->id],
             [
-                'exam_id' => $submission->exam_id,
-                'student_id' => $submission->student_id,
-                'score' => round($score, 2),
+                'exam_id'     => $submission->exam_id,
+                'student_id'  => $submission->student_id,
+                'score'       => round($score, 2),
                 'total_marks' => round($totalMarks, 2),
-                'percentage' => $percentage,
-                'time_taken' => $timeTaken,
-                'passed' => $percentage >= 50,
+                'percentage'  => $percentage,
+                'time_taken'  => $timeTaken,
+                'passed'      => $percentage >= 50,
             ]
         );
     }

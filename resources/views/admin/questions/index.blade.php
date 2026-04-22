@@ -43,10 +43,41 @@
                         <div class="space-y-4">
                             @foreach ($questions as $question)
                                 <div class="rounded-lg border border-gray-200 p-4">
-                                    <div class="mb-2 flex items-center justify-between">
-                                        <p class="font-semibold text-gray-900">Q{{ $loop->iteration }}. {{ $question->question_text }}</p>
-                                        <span class="text-sm text-gray-600">{{ $question->marks }} marks</span>
+
+                                    {{-- Question header: text, marks, and action buttons --}}
+                                    <div class="mb-2 flex items-start justify-between gap-4">
+                                        <p class="font-semibold text-gray-900">
+                                            Q{{ $loop->iteration }}. {{ $question->question_text }}
+                                        </p>
+                                        <div class="flex items-center gap-2 flex-shrink-0">
+                                            <span class="text-sm text-gray-600">{{ $question->marks }} marks</span>
+
+                                            {{-- Edit button --}}
+                                            <a href="{{ route('admin.exams.questions.edit', [$exam, $question]) }}"
+                                               class="inline-flex items-center gap-1 px-3 py-1.5 rounded-md bg-amber-50 border border-amber-200 text-xs font-semibold text-amber-700 hover:bg-amber-100 transition-colors">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                                </svg>
+                                                Edit
+                                            </a>
+
+                                            {{-- Delete button --}}
+                                            <form method="POST"
+                                                  action="{{ route('admin.exams.questions.destroy', [$exam, $question]) }}"
+                                                  onsubmit="return confirm('Delete this question? This cannot be undone.')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit"
+                                                        class="inline-flex items-center gap-1 px-3 py-1.5 rounded-md bg-red-50 border border-red-200 text-xs font-semibold text-red-600 hover:bg-red-100 transition-colors">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                                    </svg>
+                                                    Delete
+                                                </button>
+                                            </form>
+                                        </div>
                                     </div>
+
                                     <p class="mb-2 text-sm text-gray-600">
                                         Type:
                                         {{ $question->type === 'short_answer' ? 'Subjective' : 'MCQ' }}
@@ -75,7 +106,7 @@
                     @endif
 
                     <div class="mt-6">
-                        <a href="{{ route('admin.exams.index') }}" class="text-sm text-gray-600 hover:text-gray-900">Back to Exams</a>
+                        <a href="{{ route('admin.exams.index') }}" class="text-sm text-gray-600 hover:text-gray-900">← Back to Exams</a>
                     </div>
                 </div>
             </div>

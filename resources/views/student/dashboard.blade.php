@@ -152,6 +152,7 @@
                                     <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Score</th>
                                     <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Result</th>
                                     <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Submitted</th>
+                                    <th class="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Detail</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100">
@@ -189,6 +190,16 @@
                                         </td>
                                         <td class="px-6 py-4 text-sm text-gray-500">
                                             {{ $submission->submitted_at ? $submission->submitted_at->format('d M Y, H:i') : '—' }}
+                                        </td>
+                                        <td class="px-6 py-4 text-right">
+                                            @if($result && $result->published_at && $result->id)
+                                                <a href="{{ route('student.results.show', ['result' => $result->id]) }}"
+                                                   class="text-xs font-medium text-indigo-600 hover:text-indigo-800 transition-colors">
+                                                    View Detail →
+                                                </a>
+                                            @else
+                                                <span class="text-xs text-gray-300">—</span>
+                                            @endif
                                         </td>
                                     </tr>
                                 @endforeach

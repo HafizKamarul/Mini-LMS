@@ -1,9 +1,6 @@
 <x-app-layout>
     <x-slot name="header"><h1 class="h4 mb-0">Active Exams</h1></x-slot>
 
-    @if (session('success'))<div class="alert alert-success">{{ session('success') }}</div>@endif
-    @if (session('warning'))<div class="alert alert-warning">{{ session('warning') }}</div>@endif
-
     <div class="row g-3">
         @forelse($activeExams as $exam)
             @php $submission = $submissions->get($exam->id); @endphp

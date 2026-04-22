@@ -1,0 +1,6 @@
+Mini-LMS
+
+1. Issue/Improvement
+
+- Added exam 'questions' cannot be edited or deleted by admin
+- Admin and student can only view overall exam score result, but not detailed result(which question answered correctly or incorrectly)

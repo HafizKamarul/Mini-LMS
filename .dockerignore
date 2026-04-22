@@ -9,3 +9,4 @@ storage/framework/views/*
 .env
 npm-debug.log
 yarn-error.log
+public/hot
